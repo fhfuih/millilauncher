@@ -6,6 +6,11 @@ Currently WIP.
 
 `pip install click`
 
+# Functions and To-dos
+
+- [] Launch Minecraft in Legacy / Ygg / Offline mode.
+- [] Download Minecraft clients and mod clients.
+
 # License
 
-License? Screw it!
+License? I hate talking about time-wasting topics!

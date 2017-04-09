@@ -1,5 +1,5 @@
 import os
-
+from zipfile import ZipFile
 import version_dict as vd
 import system_info as si
 
@@ -21,8 +21,8 @@ class Launcher(object):
         version = self.versions.get(version_id)
         if not version:
             raise AttributeError('Version of this id does not exist.')
-        libraries = ';'.join([lib.path for lib in version.libraries if lib.allow])
-        libraries += ';' + os.path.join(self.mcdir, 'versions', version.jar, version.jar + '.jar')
+        jar = os.path.join(self.mcdir, 'versions', version.jar, version.jar + '.jar')
+        libraries = ';'.join([lib.path for lib in version.libraries if lib.allow]) + ';' + jar
         mcargs = version.minecraft_arguments.format(auth_player_name=username,
                                                     version_name=version_id,
                                                     game_directory=self.mcdir,
@@ -39,6 +39,12 @@ class Launcher(object):
                                                libs=libraries,
                                                main=version.main_class,
                                                mcargs=mcargs)
+
+    @staticmethod
+    def _extract_native(jar_path):
+        'Extract native files from a jar file'
+        with ZipFile(jar_path) as zip:
+            pass
 
 if __name__ == '__main__':
     launcher = Launcher(r'C:\Users\Xiaoqin\Documents\Minecraft\.minecraft')
