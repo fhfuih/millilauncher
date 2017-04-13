@@ -1,37 +1,41 @@
-from system_info import system
-from copy import deepcopy
+'''
+An object to handle a single library dependency.
 
-class LibraryInfo(object):
+Note that since a certain MC version, 'lwjgl-platform' declares both
+a 'classifier' key(for native file) and an 'artifact' key(for universal file).
+The universal file does exist and is accessible in Mojang's server, but is empty.
+
+There's no such file in official lwjgl binary release either.
+
+So I currently disable the 'both' result in the native-or-not check,
+which will be replaced by 'native'.
+
+Further investigation is needed.
+'''
+
+from systeminfo import system
+
+class MCLibrary(object):
     def __init__(self, d):
-        self.__dict__.update(dict.fromkeys(['name',
-                                            'allow',
-                                            'url',
-                                            'path',
-                                            'native_url',
-                                            'native_path',
-                                            'exclude']))
         self.name = d['name']
 
         # self.allow
-        self.allow = LibraryInfo._parse_rule(d)
+        self.allow = MCLibrary._parse_rule(d)
 
-        # self.url, self.path, self.native_url, self.native_path
+        # self.url, self.path, self.url, self.path
         native_key = d['natives'][system] if 'natives' in d else None
         if 'downloads' in d:
-            if 'artifact' in d['downloads']:
+            if native_key:
+                self.url = d['downloads']['classifiers'][native_key]['url']
+                self.path = d['downloads']['classifiers'][native_key]['path']
+            # make sure non-native is always the fallback option
+            else: # 'artifact' in d['downloads']
                 self.url = d['downloads']['artifact']['url']
                 self.path = d['downloads']['artifact']['path']
-            if native_key:
-                self.native_url = d['downloads']['classifiers'][native_key]['url']
-                self.native_path = d['downloads']['classifiers'][native_key]['path']
         else:
             url = d.get('url', 'https://libraries.minecraft.net/')
-            if native_key:
-                self.native_path = LibraryInfo._parse_name(self.name, native_key)
-                self.native_url = url + self.native_path
-            else:
-                self.path = LibraryInfo._parse_name(self.name)
-                self.url = url + self.path
+            self.path = MCLibrary._parse_name(self.name, native_key)
+            self.url = url + self.path
 
         # self.exclude
         self.exclude = d['extract']['exclude'] if 'extract' in d else []
@@ -49,7 +53,7 @@ class LibraryInfo(object):
         return allow
 
     @staticmethod
-    def _parse_name(name, native=''):
+    def _parse_name(name, native):
         package, name, version = name.split(':')
         if native:
             return '{0}/{1}/{2}/{1}-{2}-{3}.jar'.format(package.replace('.', '/'),
@@ -60,24 +64,6 @@ class LibraryInfo(object):
             return '{0}/{1}/{2}/{1}-{2}.jar'.format(package.replace('.', '/'),
                                                     name,
                                                     version)
-
-def from_dict(d):
-    '''returns a tuple of two library object, each represents unified and native version.
-    returns None if doesn\'t exist. '''
-    lib1 = LibraryInfo(d)
-    if not lib1.allow:
-        return None, None
-    else:
-        lib2 = deepcopy(lib1)
-        lib2.path = lib2.native_path
-        lib2.url = lib2.native_url
-        # print(lib1.path, lib2.path)
-        if not lib1.path:
-            lib1 = None
-        if not lib2.path:
-            lib2 = None
-        # print(lib1 == None, lib2 == None)
-        return lib1, lib2
 
 if __name__ == '__main__':
     vanilla_osx = r'''{
@@ -233,17 +219,12 @@ if __name__ == '__main__':
         }
     '''
     import json
-    # cm = LibraryInfo(json.loads(vanilla_common))
-    # print(cm.path)
-    cm = from_dict(json.loads(vanilla_common))[0]
-    print(cm.path)
-    # lst = [vanilla_both, vanilla_native, vanilla_osx, legacy, legacy_native, mod]
-    # for obj in lst:
-    #     lb = from_dict(json.loads(obj))
-    #     print('=====')
-    #     print(lb.name)
-    #     print(lb.allow)
-    #     print(lb.url)
-    #     print(lb.path)
-    #     print(lb.native_path)
-    #     print(lb.native_url)
+    lst = [vanilla_both, vanilla_native, vanilla_osx, legacy, legacy_native, mod]
+    for obj in lst:
+        lb = parse(json.loads(obj))
+        print('=====')
+        print(lb.name)
+        print(lb.allow)
+        print(lb.url)
+        print(lb.path)
+        print(lb.exclude)

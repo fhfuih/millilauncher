@@ -10,7 +10,7 @@ CONTEXT_SETTINGS = {'help_option_names':['-h', '--help']}
 @click.version_option(version='0.1.0')
 def cli():
     '''
-    Shellish Minecraft Launcher
+    Minecraft Linecher
 
     This is a minecraft launcher so minimalistic that it's stripped of a graphic interafce.
     Now you can launch Minecraft in a few commands, everything else is done in the backend.

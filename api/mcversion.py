@@ -1,8 +1,8 @@
-import library_info
+from mclibrary import MCLibrary
 
-class VersionInfo(object):
+class MCVersion(object):
     def __init__(self, d):
-        'Initialize a VersionInfo object by a dict parsed from <version>.json'
+        'Initialize a MCVersion object by a dict parsed from <version>.json'
         self.id = d['id']
         self.minecraft_arguments = d.get('minecraftArguments').replace('$', '')
         self.assets = d.get('assets')
@@ -10,11 +10,13 @@ class VersionInfo(object):
         self.main_class = d.get('mainClass')
 
         self.libraries = []
-        for item in d.get('libraries', []):
-            libs = library_info.from_dict(item)
-            for lib in libs:
-                if lib:
-                    self.libraries.append(lib)
+        self.extract = []
+        for obj in d.get('libraries', []):
+            lib = MCLibrary(obj)
+            if lib.allow:
+                self.libraries.append(lib)
+                if lib.exclude:
+                    self.extract.append(lib)
 
         self.inherits_from = d.get('inheritsFrom')
 
@@ -43,7 +45,7 @@ if __name__ == '__main__':
     os.chdir(r'C:\Users\Xiaoqin\Documents\Minecraft\.minecraft\versions')
     path = '1.11.2'
     with open(os.path.join(path, path + '.json'), 'r') as f:
-        vi = VersionInfo(json.load(f))
+        vi = MCVersion(json.load(f))
         print(len(vi.libraries))
-        for lib in vi.libraries:
-            print(lib.name)
+        for x in vi.libraries:
+            print(x.name)

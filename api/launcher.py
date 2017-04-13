@@ -1,7 +1,9 @@
 import os
+import shutil
+import subprocess
 from zipfile import ZipFile
-import version_dict as vd
-import system_info as si
+import mcversionslist as vd
+import systeminfo as si
 
 class Launcher(object):
     'Launcher Object'
@@ -15,7 +17,7 @@ class Launcher(object):
         self.version_directory = None
         self.natives_directory = None
         os.chdir(self.mcdir)
-        self.versions = vd.VersionsDict()
+        self.versions = vd.MCVersionsList()
 
         self.extra_argument = '-Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true'
 
@@ -26,34 +28,44 @@ class Launcher(object):
         if not version:
             raise AttributeError('Version of this id does not exist.')
         self._update_directories(version_id)
+        self._extract_natives(version)
 
         jar = os.path.join(self.mcdir, 'versions', version.jar, version.jar + '.jar')
-        libraries = ';'.join([lib.path for lib in version.libraries if lib.allow]) + ';' + jar
+        libraries = ';'.join([os.path.join(self.libraries_directory, lib.path) for lib in version.libraries]) + ';' + jar
         mcargs = version.minecraft_arguments.format(auth_player_name=username,
                                                     version_name=version_id,
                                                     game_directory=self.mcdir,
-                                                    assets_root=os.path.join(self.mcdir, 'assets'),
+                                                    assets_root=self.assets_directory,
                                                     assets_index_name=version.assets,
-                                                    auth_uuid=00000000,
-                                                    auth_access_token=00000000,
+                                                    auth_uuid=0,
+                                                    auth_access_token=0,
                                                     user_type='Legacy',
                                                     version_type='Legacy')
-        return Launcher.template_script.format(javaw='javaw',
-                                               extra=self.extra_argument,
-                                               maxmem=maxmem,
-                                               natives='',
-                                               libs=libraries,
-                                               main=version.main_class,
-                                               mcargs=mcargs)
+        subprocess.run(Launcher.template_script.format(javaw='javaw',
+                                                       extra=self.extra_argument,
+                                                       maxmem=maxmem,
+                                                       natives=self.natives_directory,
+                                                       libs=libraries,
+                                                       main=version.main_class,
+                                                       mcargs=mcargs))
+        return True
+
     def _update_directories(self, version_id):
         self.version_directory = os.path.join(self.mcdir, 'versions', version_id)
-        self.natives_directory = os.path.join(self.version_directory, self.version_directory + '-natives')
+        self.natives_directory = os.path.join(self.version_directory, version_id + '-natives')
 
-    @staticmethod
-    def _extract_natives(file, exclude):
+    def _extract_natives(self, version):
         'Extract natives files from a jar file'
-        with ZipFile(file) as zip:
-            pass
+        os.chdir(self.libraries_directory)
+        exclude_names = set()
+        for library in version.extract:
+            with ZipFile(library.path) as libzip:
+                libzip.extractall(self.natives_directory)
+            exclude_names.update(library.exclude)
+        os.chdir(self.natives_directory)
+        for name in exclude_names:
+            shutil.rmtree(name)
+        os.chdir(self.mcdir)
 
 if __name__ == '__main__':
     launcher = Launcher(r'C:\Users\Xiaoqin\Documents\Minecraft\.minecraft')
