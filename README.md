@@ -1,16 +1,32 @@
-# minecraft-linecher
-A minimal minecraft launcher in command-line interface.
-Currently WIP.
+# Millilauncher
 
-# Dependencies
+A minimalist, line-oriented Minecraft launcher
+
+# Requirements
 
 `pip install click`
 
-# Functions and To-dos
+# Usage
 
-- [] Launch Minecraft in Legacy / Ygg / Offline mode.
-- [] Download Minecraft clients and mod clients.
+The most basic method:
+`millilauncher launch 1.11.2`
+
+More to be implemented.
+
+# Features, Usage & TODOs
+
+* [ ] Launch Minecraft offline
+
+`millilauncher launch 1.11.2`
+
+* [ ] Authentication
+
+* [ ] Auto-download missing game dependencies
+
+* [ ] Download game client
+
+# TODO
 
 # License
 
-License? I hate talking about time-wasting topics!
+I hate time-wasting topics.
