@@ -2,22 +2,23 @@ import os
 import shutil
 import subprocess
 from zipfile import ZipFile
-import mcversionslist as vd
-import systeminfo as si
+from .mcversionslist import MCVersionsList
+from .systeminfo import default_minecraft_directory
 
-class Launcher(object):
-    'Launcher Object'
-    template_script = '{javaw} {extra} -Xmx{maxmem}M -Djava.library.path={natives} -cp {libs} {main} {mcargs}'
-    def __init__(self, mcdir, javadir='javaw'):
-        self.mcdir = mcdir if mcdir else si.get_default_minecraft_directory()
-        if not self.mcdir:
+template_script = '{javaw} {extra} -Xmx{maxmem}M -Djava.library.path={natives} -cp {libs} {main} {mcargs}'
+
+class LauncherCore(object):
+    'LauncherCore Object'
+    def __init__(self, mc_dir, java_dir):
+        self.minecraft_directory = mc_dir if mc_dir else default_minecraft_directory
+        if not self.minecraft_directory:
             raise FileNotFoundError('Invalid /.Minecraft/ directory.')
-        self.libraries_directory = os.path.join(self.mcdir, 'libraries')
-        self.assets_directory = os.path.join(self.mcdir, 'assets')
+        self.libraries_directory = os.path.join(self.minecraft_directory, 'libraries')
+        self.assets_directory = os.path.join(self.minecraft_directory, 'assets')
         self.version_directory = None
         self.natives_directory = None
-        os.chdir(self.mcdir)
-        self.versions = vd.MCVersionsList()
+        os.chdir(self.minecraft_directory)
+        self.versions = MCVersionsList()
 
         self.extra_argument = '-Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true'
 
@@ -30,28 +31,30 @@ class Launcher(object):
         self._update_directories(version_id)
         self._extract_natives(version)
 
-        jar = os.path.join(self.mcdir, 'versions', version.jar, version.jar + '.jar')
+        jar = os.path.join(self.minecraft_directory, 'versions', version.jar, version.jar + '.jar')
         libraries = ';'.join([os.path.join(self.libraries_directory, lib.path) for lib in version.libraries]) + ';' + jar
-        mcargs = version.minecraft_arguments.format(auth_player_name=username,
-                                                    version_name=version_id,
-                                                    game_directory=self.mcdir,
-                                                    assets_root=self.assets_directory,
-                                                    assets_index_name=version.assets,
-                                                    auth_uuid=0,
-                                                    auth_access_token=0,
-                                                    user_type='Legacy',
-                                                    version_type='Legacy')
-        subprocess.run(Launcher.template_script.format(javaw='javaw',
-                                                       extra=self.extra_argument,
-                                                       maxmem=maxmem,
-                                                       natives=self.natives_directory,
-                                                       libs=libraries,
-                                                       main=version.main_class,
-                                                       mcargs=mcargs))
+        mcargs = version.minecraft_arguments.format(
+            auth_player_name=username,
+            version_name=version_id,
+            game_directory=self.minecraft_directory,
+            assets_root=self.assets_directory,
+            assets_index_name=version.assets,
+            auth_uuid=0,
+            auth_access_token=0,
+            user_type='Legacy',
+            version_type='Legacy')
+        subprocess.run(template_script.format(
+            javaw='javaw',
+            extra=self.extra_argument,
+            maxmem=maxmem,
+            natives=self.natives_directory,
+            libs=libraries,
+            main=version.main_class,
+            mcargs=mcargs))
         return True
 
     def _update_directories(self, version_id):
-        self.version_directory = os.path.join(self.mcdir, 'versions', version_id)
+        self.version_directory = os.path.join(self.minecraft_directory, 'versions', version_id)
         self.natives_directory = os.path.join(self.version_directory, version_id + '-natives')
 
     def _extract_natives(self, version):
@@ -65,9 +68,10 @@ class Launcher(object):
         os.chdir(self.natives_directory)
         for name in exclude_names:
             shutil.rmtree(name)
-        os.chdir(self.mcdir)
+        os.chdir(self.minecraft_directory)
 
 if __name__ == '__main__':
-    launcher = Launcher(r'C:\Users\Xiaoqin\Documents\Minecraft\.minecraft')
+    path = input('.minecraft path: ')
+    launcher = LauncherCore(path, shutil.which('javaw'))
     # print(launcher.version_dict.keys())
     print(launcher.launch('1.11.2'))

@@ -1,13 +1,8 @@
 import platform as pf
 import os
+import shutil
 
-system = {'Windows':'windows', 'Darwin':'osx', 'Linux':'linux'}[pf.system()]
-
-architecture = pf.architecture()[0]
-
-version = pf.version()
-
-def get_default_minecraft_directory():
+def _get_default_minecraft_directory():
     'Attempt to detect .minecraft folder. Returns None if failed.'
     if system == 'windows':
         native_directory = os.path.join(os.getenv('APPDATA'), '.minecraft')
@@ -26,6 +21,18 @@ def get_default_minecraft_directory():
     else:
         return None
 
+system = {'Windows':'windows', 'Darwin':'osx', 'Linux':'linux'}[pf.system()]
+
+architecture = {'64bit':'64', '32bit':'32'}[pf.architecture()[0]]
+
+version = pf.version()
+
+default_java_directory = shutil.which('javaw')
+if default_java_directory and os.path.islink(default_java_directory):
+    default_java_directory = os.readlink(default_java_directory)
+
+default_minecraft_directory = _get_default_minecraft_directory()
+
 if __name__ == '__main__':
     print(system, architecture, version)
-    print(get_default_minecraft_directory())
+    print(default_minecraft_directory)

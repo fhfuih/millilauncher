@@ -1,4 +1,4 @@
-from mclibrary import MCLibrary
+from .mclibrary import MCLibrary
 
 class MCVersion(object):
     def __init__(self, d):

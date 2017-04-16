@@ -13,7 +13,7 @@ which will be replaced by 'native'.
 Further investigation is needed.
 '''
 
-from systeminfo import system
+from .systeminfo import system, architecture
 
 class MCLibrary(object):
     def __init__(self, d):
@@ -23,7 +23,7 @@ class MCLibrary(object):
         self.allow = MCLibrary._parse_rule(d)
 
         # self.url, self.path, self.url, self.path
-        native_key = d['natives'][system] if 'natives' in d else None
+        native_key = d['natives'][system].replace('$', '').format(arch=architecture) if 'natives' in d else None
         if 'downloads' in d:
             if native_key:
                 self.url = d['downloads']['classifiers'][native_key]['url']
@@ -221,7 +221,7 @@ if __name__ == '__main__':
     import json
     lst = [vanilla_both, vanilla_native, vanilla_osx, legacy, legacy_native, mod]
     for obj in lst:
-        lb = parse(json.loads(obj))
+        lb = MCLibrary(json.loads(obj))
         print('=====')
         print(lb.name)
         print(lb.allow)

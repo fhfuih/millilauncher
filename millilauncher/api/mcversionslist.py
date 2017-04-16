@@ -1,6 +1,6 @@
-from mcversion import MCVersion
 import os
 import json
+from .mcversion import MCVersion
 
 class MCVersionsList(object):
     def __init__(self, path_to_versions_folder='versions'):
@@ -29,11 +29,9 @@ class MCVersionsList(object):
         return this
 
 if __name__ == '__main__':
-    vl = MCVersionsList(r'C:\Users\Xiaoqin\Documents\Minecraft\.minecraft\versions')
+    path = input('.minecraft path: ')
+    vl = MCVersionsList(path + '\\versions')
     print(vl._dict.keys())
-    for version in ['1.11.2-LiteLoader1.11.2-1.11.2-forge1.11.2-13.20.0.2228',
-                    '1.11.2-forge1.11.2-13.20.0.2228',
-                    '1.11.2']:
-        ver = vl.get(version)
-        print('=====')
-        print(len(ver.libraries))
+    ver = vl.get('1.11.2')
+    print('=====')
+    print(len(ver.libraries) if ver.libraries else 0)
