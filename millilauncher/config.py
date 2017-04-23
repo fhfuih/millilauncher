@@ -36,8 +36,10 @@ class _Config(dict):
         self[key] = val
 
     def save(self):
+        obj = self.copy()
+        obj.pop('first_launch')
         with open(_config_file, 'w') as fp:
-            json.dump(self, fp, ensure_ascii=False, indent=4)
+            json.dump(obj, fp, ensure_ascii=False, indent=4)
 
     def reset(self):
         self.update(_default)
