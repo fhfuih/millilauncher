@@ -1,16 +1,16 @@
 import platform as pf
 import os
 import shutil
+import sys
 
 def _get_default_minecraft_directory():
     'Attempt to detect .minecraft folder. Returns None if failed.'
     if system == 'windows':
         native_directory = os.path.join(os.getenv('APPDATA'), '.minecraft')
     elif system == 'osx':
-        native_directory = os.path.join(os.getenv('HOME'), 'Library',
-                                        'Application Support', '.minecraft')
+        native_directory = os.path.expanduser("~/Library/Application Support/minecraft")
     else:
-        native_directory = os.path.join(os.getenv('HOME'), '.minecraft')
+        native_directory = os.path.expanduser("~/.minecraft")
 
     if os.path.exists(native_directory):
         return native_directory
