@@ -1,45 +1,58 @@
-'''
-Configuration values to be stored:
-mcdir
-javadir
-maxmem
-username
-fullscreen
-exitonlaunch
-'''
-from os import path
 import json
-from sys import argv
-from configparser import ConfigParser
+from sys import path
+import os.path
+
 from api import systeminfo as _info
 
-_config_file = path.join(argv[0], 'millilauncher.ini')
+_config_file = os.path.join(path[0], 'millilauncher.json') 
 
-_defaults = {
-    ('mc_dir', 'MinecraftFolderDirectory'): (_info.default_minecraft_directory, ''),
-    ('java_dir', 'JavaExecutableDirectory'): (_info.default_java_directory, ''),
-    ('max_mem', 'MaximumMemoryAllocated(MB)'): (2048, 'int'),
-    ('username', 'Username'): ('Steve', 'int'),
-    ('fullscreen', 'FullScreen'): (False, 'boolean'),
-    ('exit_on_launch', 'ExitOnLaunch'): (False, 'boolean')
+_default = {
+    'minecraft_folder': _info.default_minecraft_directory,
+    'javaw_file': _info.default_java_directory,
+    'max_mem': 2048,
+    'username': 'Steve',
+    'fullscreen': False,
+    'exit_on_launch': False
 }
 
-
-class _Config(object):
+class _Config(dict):
+    __slots__ = ()
     def __init__(self):
-        self._config = ConfigParser(defaults=_defaults)
-        self.generated = not bool(self._config.read(_config_file)) # Is this config file generated or from a existing file.
-        if self.generated:
-            self._config.add_section('User')
-            for (key, name), (value, typesuffix) in _defaults:
-                self._config['DEFAULT'][name] = value
-                setattr(key, property(self._getter(value, typesuffix), self._setter))
+        super().__init__()
+        try:
+            with open(_config_file) as fp:
+                self.update(json.load(fp))
+        except FileNotFoundError:
+            self.first_launch = True
+            self.reset()
+        else:
+            self.first_launch = False
+            self._confirm()
 
-    def _getter(self, value, typesuffix):
-        def _getter_core(self):
-            val = value
-            return getattr(self._config, 'get' + typesuffix)('User', val)
-        return _getter_core
+    def __getattr__(self, key):
+        return self[key]
 
-    def _setter(self, val):
-        self._config.set('User', val)
+    def __setattr__(self, key, val):
+        self[key] = val
+
+    def save(self):
+        with open(_config_file, 'w') as fp:
+            json.dump(self, fp, ensure_ascii=False, indent=4)
+
+    def reset(self):
+        self.update(_default)
+        self.save()
+
+    def _confirm(self):
+        for key, val in _default.items():
+            self.setdefault(key, val)
+
+config = _Config()
+
+if __name__ == '__main__':
+    if config.first_launch:
+        print('first')
+    else:
+        config.username = 'Voila!'
+        print('read!')
+    config.save()
