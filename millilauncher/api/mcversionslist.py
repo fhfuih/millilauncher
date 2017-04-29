@@ -33,3 +33,8 @@ class MCVersionsList(object):
             parent = self.get(parent_id) # recursively do parent's inheritance first
             this.inherit(parent)
         return this
+
+    def __str__(self):
+        return '\n'.join(sorted(self._dict))
+
+    __repr__ = __str__

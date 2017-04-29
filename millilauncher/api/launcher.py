@@ -56,7 +56,7 @@ class LauncherCore(object):
             user_type='Legacy', version_type='Legacy')
 
         return _template_script.format(
-            javaw='javaw', extra=self.extra_argument, maxmem=maxmem,
+            javaw=self.java_directory, extra=self.extra_argument, maxmem=maxmem,
             natives=self.natives_directory, libs=libraries, main=version.main_class, mcargs=mcargs)
 
     def _update_directories(self, version_id):
