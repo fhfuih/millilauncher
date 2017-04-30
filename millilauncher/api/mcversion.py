@@ -1,8 +1,16 @@
+"""
+An object to handle a single Minecraft version file.
+"""
 from .mclibrary import MCLibrary
 
 class MCVersion(object):
+    """
+    An object to handle a single Minecraft version file.
+    """
     def __init__(self, d):
-        'Initialize a MCVersion object by a dict parsed from <version>.json'
+        """
+        Initialize a MCVersion object by a dict parsed from <version>.json
+        """
         self.id = d['id']
         self.minecraft_arguments = d.get('minecraftArguments').replace('$', '')
         self.assets = d.get('assets')
@@ -21,7 +29,9 @@ class MCVersion(object):
         self.inherits_from = d.get('inheritsFrom')
 
     def inherit(self, parent):
-        'check if this version has parent, and inherit its data if so'
+        """
+        Check if this version has parent, and inherit its data if so
+        """
         if not parent or not self.inherits_from:
             return False
         if parent.id == self.id:
@@ -38,14 +48,3 @@ class MCVersion(object):
                 self.main_class = parent.main_class
             self.libraries += parent.libraries
             return True
-
-if __name__ == '__main__':
-    import json
-    import os
-    os.chdir(r'C:\Users\Xiaoqin\Documents\Minecraft\.minecraft\versions')
-    path = '1.11.2'
-    with open(os.path.join(path, path + '.json'), 'r') as f:
-        vi = MCVersion(json.load(f))
-        print(len(vi.libraries))
-        for x in vi.libraries:
-            print(x.name)

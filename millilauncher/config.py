@@ -1,32 +1,37 @@
-import json
-from sys import path
+"""
+Configuration settings and storage.
+"""
+from sys import path as syspath
 import os.path
+import json
 
 from api import systeminfo as _info
 
-_config_file = os.path.join(path[0], 'millilauncher.json') 
+_config_file = os.path.join(syspath[0], 'millilauncher.json')
 
 _default = {
-    'minecraft_folder': _info.default_minecraft_directory,
-    'javaw_file': _info.default_java_directory,
-    'max_mem': 2048,
-    'username': 'Steve',
-    'fullscreen': False,
-    'exit_on_launch': False
+    # download_source:'Mojang',
+    "exit_on_launch": False,
+    "fullscreen": False,
+    "java_dir": _info.default_java_directory,
+    # login_mode:'Offline',
+    "max_mem": 2048,
+    "mc_dir": _info.default_minecraft_directory,
+    "username": "Steve"
 }
 
 class _Config(dict):
-    __slots__ = ()
     def __init__(self):
         super().__init__()
         try:
             with open(_config_file) as fp:
-                self.update(json.load(fp))
-        except FileNotFoundError:
-            self.first_launch = True
+                obj = json.loads(fp.read())
+                self.update(obj)
+        except (FileNotFoundError, json.decoder.JSONDecodeError):
+            self.__dict__['first_run'] = True
             self.reset()
         else:
-            self.first_launch = False
+            self.__dict__['first_run'] = False
             self._confirm()
 
     def __getattr__(self, key):
@@ -35,13 +40,22 @@ class _Config(dict):
     def __setattr__(self, key, val):
         self[key] = val
 
+    # Why can't default __setitem__ work properly?
+    # Which will clear all but the very key passed to it.
+    def __setitem__(self, key, val):
+        dict.__setitem__(self, key, val)
+
     def save(self):
-        obj = self.copy()
-        obj.pop('first_launch')
+        """
+        Save the configuration file
+        """
         with open(_config_file, 'w') as fp:
-            json.dump(obj, fp, ensure_ascii=False, indent=4)
+            json.dump(self, fp, ensure_ascii=False, indent=4, sort_keys=True)
 
     def reset(self):
+        """
+        Reset the configuration settings to default
+        """
         self.update(_default)
         self.save()
 
@@ -49,12 +63,7 @@ class _Config(dict):
         for key, val in _default.items():
             self.setdefault(key, val)
 
-config = _Config()
+config = None
 
-if __name__ == '__main__':
-    if config.first_launch:
-        print('first')
-    else:
-        config.username = 'Voila!'
-        print('read!')
-    config.save()
+if config is None:
+    config = _Config()
