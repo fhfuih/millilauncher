@@ -3,6 +3,7 @@ Configuration settings and storage.
 """
 from sys import path as syspath
 import os.path
+import logging
 import json
 
 from api import systeminfo as _info
@@ -26,7 +27,12 @@ class _Config(dict):
         try:
             with open(_config_file) as fp:
                 self.update(json.load(fp))
-        except (FileNotFoundError, json.decoder.JSONDecodeError):
+        except FileNotFoundError:
+            logging.info('Config file not found.')
+            self.__dict__['first_run'] = True
+            self.reset()
+        except json.decoder.JSONDecodeError:
+            logging.warning('Config file is corrupted.')
             self.__dict__['first_run'] = True
             self.reset()
         else:
