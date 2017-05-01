@@ -21,10 +21,10 @@ def main():
     """
     pass
 
-@main.command('launch')
+@main.command()
 @click.argument('version')
 @click.option('-r', '--raw', is_flag=True, default=False)
-def _launch(version, raw):
+def launch(version, raw):
     """
     Launch Minecraft of a certain version
     """
@@ -33,7 +33,6 @@ def _launch(version, raw):
         click.echo(launcher.launch_raw(version, config.username, config.max_mem))
     else:
         launcher.launch(version, config.username, config.max_mem)
-
 
 # @main.command('download')
 # @click.argument('version')
@@ -50,14 +49,8 @@ def _launch(version, raw):
 #     """
 #     pass
 
-@main.group('config')
-def _config():
-    """
-    Configure your millilauncher and launch preferences
-    """
-    pass
-
-@_config.command('set')
+@main.command('config')
+@click.argument('action', type=click.Choice(['reset', 'wizard']), required=False)
 # @click.option('-l', '--lang', help='Language of this command-line interface')
 @click.option('-e', '--exit-on-launch', is_flag=True, help='Whether to terminate the launcher once the game is launched')
 @click.option('-M', '--mc-dir', help='Path to \'.minecraft\' folder')
@@ -66,65 +59,66 @@ def _config():
 @click.option('-f', '--fullscreen', is_flag=True, help='Whether to launch Minecraft in fullscreen')
 # @click.option('-L', '--login-mode', help='Default login mode.\
 #     Can be overrided by passing an argument to \'launch\' command')
-@click.option('-U', '--username', help='Username for the default Minecraft account.\
-    Can be overrided by passing an argument to \'launch\' command')
-# @click.option('-P', '--password', help='Password for the default Minecraft account.\
-#     Can be overrided by passing an argument to \'launch\' command')
+@click.option('-U', '--username', help='Username for the default Minecraft account.')
+# @click.option('-P', '--password', help='Password for the default Minecraft account.')
 # @click.option('-s', '--download-source', help='Default source from which the launcher downloads resources')
-def _set(**kw):
+def config_(action, **kw):
+    """
+    Configure your millilauncher and game preferences.
+    The 'action' argument is optional, and can be 'reset' or 'wizard'. 
+    If it's left blank, only given options will be set.
+    Else, given options will be set AFTER the corresponding action is executed.
+    """
+    if action == 'reset':
+        ok = click.prompt('Are you sure you want to reset you settings?', confirmation_prompt=True)
+        if ok:
+            config.reset()
+    elif action == 'wizard':
+        _wizard()
+
     for k, v in kw.items():
+        if v is None:
+            break
         if isinstance(v, str) and v[0] == '=':
             v = v[1:]
-        print(config)
         config[k.replace('-', '_')] = v
     config.save()
 
-
-@_config.command('reset')
-@click.confirmation_option(help='Are you sure you want to reset you settings?')
-def _reset():
-    """
-    Reset your configuration settings to default
-    """
-    config.reset()
-
-@_config.command('wizard')
 def _wizard():
-    """
-    Run the setup wizard
-    """
     click.echo('Running the setup wizard. On each line, a default value is shown in the brackets if valid.\
         Leave blank to use it, or enter a new value.')
     config.mc_dir = click.prompt('Your \'.minecraft\' folder path', show_default=True, default=config.mc_dir, type=click.Path(exists=True))
-    config.java_dir = click.prompt('Your \'javaw\' file path', show_default=True, default=config.mc_dir, type=click.Path(exists=True))
+    config.java_dir = click.prompt('Your \'javaw\' file path', show_default=True, default=config.java_dir, type=click.Path(exists=True))
     config.max_mem = click.prompt('Maximum memory allocated to Minecraft in MB', show_default=True, default=config.max_mem, type=int)
     config.username = click.prompt('Your Minecraft username', show_default=True, default=config.username)
-    config.echo('Done! More entries can be reached later manually.')
+    click.echo('Done! More entries can be reached later manually.')
     config.save()
 
-@main.group('list')
-def _list():
+@main.command('list')
+@click.argument('src', type=click.Choice(['local', 'remote']), default='local')
+@click.option('-m', '--min', help='The oldest version of a range', default=None)
+@click.option('-M', '--max', help='The latest version of a range', default=None)
+def list_(src, min, max):
     """
-    List all valid Minecraft versions
+    List all valid Minecraft versions in a range(if given).
+    The 'src' argument can be 'local'(default) or 'remote'.
+    The former will check valid Minecraft versions on your computer.
+    The latter will get a list of valid versions released by Mojang.
     """
-    pass
-
-@_list.command('local')
-def _local():
-    """
-    List valid Minecraft versions stored locally
-    """
-    launcher = api.LauncherCore(config.mc_dir, config.java_dir)
-    click.echo(launcher.versions)
-
-@_list.command('remote')
-@click.option('-l', '--low')
-@click.option('-h', '--high')
-def _remote(low, high):
-    """
-    Fetch valid Minecraft versions list from Mojang in the range (if provided).
-    """
-    pass
+    if src == 'local':
+        launcher = api.LauncherCore(config.mc_dir, config.java_dir)
+        vlist = launcher.versions.list
+        try:
+            begin = vlist.index(min)
+        except ValueError:
+            begin = 0
+        try:
+            end = vlist.index(max) + 1
+        except ValueError:
+            end = len(vlist)
+        click.echo('\n'.join(vlist[begin:end]))
+    else:
+        pass
 
 if __name__ == '__main__':
     main()
