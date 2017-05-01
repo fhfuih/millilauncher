@@ -25,6 +25,7 @@ class LauncherCore(object):
         self.assets_directory = os.path.join(self.minecraft_directory, 'assets')
         self.version_directory = None
         self.natives_directory = None
+        self.libraries = None
         os.chdir(self.minecraft_directory)
         self.versions = MCVersionsList(mc_dir)
 
@@ -46,30 +47,25 @@ class LauncherCore(object):
             raise AttributeError('Version of this id does not exist.')
         self._update_directories(version_id)
         self._extract_natives(version)
+        self._update_libraries(version)
 
         jar = os.path.join(self.minecraft_directory, 'versions', version.jar, version.jar + '.jar')
-        libraries = ';'.join([os.path.join(self.libraries_directory, lib.path) for lib in version.libraries]) + ';' + jar
+        libraries = ';'.join(self.libraries) + ';' + jar
         mcargs = version.minecraft_arguments.format(
             auth_player_name=username, version_name=version_id,
             game_directory=self.minecraft_directory, assets_root=self.assets_directory,
             assets_index_name=version.assets, auth_uuid=0, auth_access_token=0,
-            user_type='Legacy', version_type='Legacy')
+            user_type='Legacy', version_type='Legacy', user_properties={})
 
         return _template_script.format(
             javaw=self.java_directory, extra=self.extra_argument, maxmem=maxmem,
             natives=self.natives_directory, libs=libraries, main=version.main_class, mcargs=mcargs)
 
     def _update_directories(self, version_id):
-        """
-        Update version-related directories
-        """
         self.version_directory = os.path.join(self.minecraft_directory, 'versions', version_id)
         self.natives_directory = os.path.join(self.version_directory, version_id + '-natives')
 
     def _extract_natives(self, version):
-        """
-        Extract natives files from a jar file
-        """
         os.chdir(self.libraries_directory)
         exclude_names = set()
         for library in version.extract:
@@ -80,3 +76,11 @@ class LauncherCore(object):
         for name in exclude_names:
             shutil.rmtree(name)
         os.chdir(self.minecraft_directory)
+
+    def _update_libraries(self, version):
+        self.libraries = []
+        for lib in version.libraries:
+            full_path = os.path.join(self.libraries_directory, lib.path)
+            if not os.path.exists(full_path):
+                raise FileNotFoundError("Library {0} doesn't exist".format(lib.name))
+            self.libraries.append(full_path)
