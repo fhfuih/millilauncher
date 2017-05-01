@@ -25,8 +25,7 @@ class _Config(dict):
         super().__init__()
         try:
             with open(_config_file) as fp:
-                obj = json.loads(fp.read())
-                self.update(obj)
+                self.update(json.load(fp))
         except (FileNotFoundError, json.decoder.JSONDecodeError):
             self.__dict__['first_run'] = True
             self.reset()
@@ -39,11 +38,6 @@ class _Config(dict):
 
     def __setattr__(self, key, val):
         self[key] = val
-
-    # Why can't default __setitem__ work properly?
-    # Which will clear all but the very key passed to it.
-    def __setitem__(self, key, val):
-        dict.__setitem__(self, key, val)
 
     def save(self):
         """
