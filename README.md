@@ -4,6 +4,8 @@ A minimalist, line-oriented Minecraft launcher
 
 # Requirements
 
+Python 3.x (I' m using 3.5. But other versions should be fine.)
+
 `pip install click`
 
 # Usage
@@ -13,20 +15,24 @@ The most basic method:
 
 More to be implemented.
 
-# Features, Usage & TODOs
+# Features & TODOs
 
-* [ ] Launch Minecraft offline
+* [x] Launch Minecraft offline
 
-`millilauncher launch 1.11.2`
+* [ ] Logging
+
+* [ ] Shortcut
+
+* [ ] Localization
 
 * [ ] Authentication
 
-* [ ] Auto-download missing game dependencies
+* [ ] Further investigation on `userProperties` `userTyoe`
 
-* [ ] Download game client
+* [ ] Auto-detect & download missing game dependencies
 
-# TODO
+* [ ] Download game clients and mod installers
 
 # License
 
-I hate time-wasting topics.
+WTFPL
