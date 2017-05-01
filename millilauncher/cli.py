@@ -29,7 +29,7 @@ def main():
 @click.option('-r', '--raw', is_flag=True, default=False)
 def launch(version, raw):
     """
-    Launch Minecraft of a certain version
+    Launch Minecraft of the given version
     """
     launcher = api.LauncherCore(config.mc_dir, config.java_dir)
     if raw:
@@ -67,7 +67,7 @@ def launch(version, raw):
 # @click.option('-s', '--download-source', help='Default source from which the launcher downloads resources')
 def config_(action, **kw):
     """
-    Configure your millilauncher and game preferences.
+    Configure your launcher and game preferences.
     The 'action' argument is optional, and can be 'reset' or 'wizard'. 
     If it's left blank, only given options will be set.
     Else, given options will be set AFTER the corresponding action is executed.
@@ -103,7 +103,7 @@ def _wizard():
 @click.option('-M', '--max', help='The latest version of a range', default=None)
 def list_(src, min, max):
     """
-    List all valid Minecraft versions in a range(if given).
+    List Minecraft versions in a range(if given).
     The 'src' argument can be 'local'(default) or 'remote'.
     The former will check valid Minecraft versions on your computer.
     The latter will get a list of valid versions released by Mojang.
