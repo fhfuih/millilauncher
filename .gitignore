@@ -1,6 +1,7 @@
 # Generated config file
 
 millilauncher.json
+millilauncher.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

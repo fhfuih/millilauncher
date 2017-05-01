@@ -19,7 +19,7 @@ More to be implemented.
 
 * [x] Launch Minecraft offline
 
-* [ ] Logging
+* [x] Logging
 
 * [ ] Shortcut
 

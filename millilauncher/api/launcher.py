@@ -3,6 +3,7 @@ Core Minecraft luancher object.
 """
 import os
 import shutil
+import logging
 import subprocess
 from zipfile import ZipFile
 from .mcversionslist import MCVersionsList
@@ -18,8 +19,10 @@ class LauncherCore(object):
         self.minecraft_directory = mc_dir
         self.java_directory = java_dir
         if not self.minecraft_directory:
+            logging.critical('Invalid /.minecraft/ directory.')
             raise FileNotFoundError('Invalid /.minecraft/ directory.')
         if not self.java_directory:
+            logging.critical('Invalid javaw.exe directory.')
             raise FileNotFoundError('Invalid javaw.exe directory.')
         self.libraries_directory = os.path.join(self.minecraft_directory, 'libraries')
         self.assets_directory = os.path.join(self.minecraft_directory, 'assets')
@@ -57,9 +60,11 @@ class LauncherCore(object):
             assets_index_name=version.assets, auth_uuid=0, auth_access_token=0,
             user_type='Legacy', version_type='Legacy', user_properties={})
 
-        return _template_script.format(
+        script = _template_script.format(
             javaw=self.java_directory, extra=self.extra_argument, maxmem=maxmem,
             natives=self.natives_directory, libs=libraries, main=version.main_class, mcargs=mcargs)
+        logging.info('Successfully generated launching script.')
+        return script
 
     def _update_directories(self, version_id):
         self.version_directory = os.path.join(self.minecraft_directory, 'versions', version_id)
@@ -72,6 +77,7 @@ class LauncherCore(object):
             with ZipFile(library.path) as libzip:
                 libzip.extractall(self.natives_directory)
             exclude_names.update(library.exclude)
+            logging.debug('Extracted library %s', library.name)
         os.chdir(self.natives_directory)
         for name in exclude_names:
             shutil.rmtree(name)
@@ -84,3 +90,5 @@ class LauncherCore(object):
             if not os.path.exists(full_path):
                 raise FileNotFoundError("Library {0} doesn't exist".format(lib.name))
             self.libraries.append(full_path)
+            logging.debug('Loaded library %s', lib.name)
+        logging.info('Loaded all libraries. %d in total', len(self.libraries))

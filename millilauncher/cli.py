@@ -1,11 +1,14 @@
 """
 A command-line interface
 """
+import logging
 import click
 
 import api
 from config import config
 from __init__ import __version__ as version
+
+logging.basicConfig(filename='millilauncher.log', filemode='w', level=logging.DEBUG)
 
 CONTEXT_SETTINGS = {'help_option_names':['-h', '--help']}
 
