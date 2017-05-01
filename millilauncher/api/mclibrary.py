@@ -22,9 +22,9 @@ class MCLibrary(object):
         # self.allow
         self.allow = MCLibrary._parse_rule(d)
 
-        # self.url, self.path, self.url, self.path
+        # self.url, self.path
         native_key = d['natives'][system].replace('$', '').format(arch=architecture) if 'natives' in d else None
-        if 'downloads' in d:
+        if 'downloads' in d: # Mojang format
             if native_key:
                 self.url = d['downloads']['classifiers'][native_key]['url']
                 self.path = d['downloads']['classifiers'][native_key]['path']
@@ -32,7 +32,7 @@ class MCLibrary(object):
             else: # 'artifact' in d['downloads']
                 self.url = d['downloads']['artifact']['url']
                 self.path = d['downloads']['artifact']['path']
-        else:
+        else: # Forge format
             url = d.get('url', 'https://libraries.minecraft.net/')
             self.path = MCLibrary._parse_name(self.name, native_key)
             self.url = url + self.path

@@ -10,8 +10,8 @@ class MCVersionsList(object):
     An object to handle a list of valid Minecraft version files.
     """
     def __init__(self, mc_dir):
-        """Initialize a dict of MCVersion objects in the given \'versions\' folder
-        either set the correct working directory or pass the path to \'versions\'"""
+        """Initialize a dict of MCVersion objects according to the
+        '.minecraft' folder in mc_dir."""
         self._dict = {}
         os.chdir(os.path.join(mc_dir, 'versions'))
         for version in os.listdir():
@@ -21,6 +21,8 @@ class MCVersionsList(object):
                     with open(json_file) as fp:
                         self._dict[version] = MCVersion(json.load(fp))
         os.chdir('..')
+
+        self.list = sorted(self._dict)
 
     def get(self, version_id):
         """Attempt to get a MCVersion object according to its id.
@@ -33,8 +35,3 @@ class MCVersionsList(object):
             parent = self.get(parent_id) # recursively do parent's inheritance first
             this.inherit(parent)
         return this
-
-    def __str__(self):
-        return '\n'.join(sorted(self._dict))
-
-    __repr__ = __str__
