@@ -12,7 +12,7 @@ which will be replaced by 'native'.
 
 Further investigation is needed.
 """
-
+from string import Template
 from .systeminfo import system, architecture
 
 class MCLibrary(object):
@@ -23,7 +23,8 @@ class MCLibrary(object):
         self.allow = MCLibrary._parse_rule(d)
 
         # self.url, self.path
-        native_key = d['natives'][system].replace('$', '').format(arch=architecture) if 'natives' in d else None
+        native_key = Template(d['natives'][system]).substitute(
+            arch=architecture) if 'natives' in d else None
         if 'downloads' in d: # Mojang format
             if native_key:
                 self.url = d['downloads']['classifiers'][native_key]['url']

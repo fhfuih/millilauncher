@@ -1,6 +1,7 @@
 """
 An object to handle a single Minecraft version file.
 """
+from string import Template
 from .mclibrary import MCLibrary
 
 class MCVersion(object):
@@ -12,10 +13,12 @@ class MCVersion(object):
         Initialize a MCVersion object by a dict parsed from <version>.json
         """
         self.id = d['id']
-        self.minecraft_arguments = d.get('minecraftArguments').replace('$', '')
         self.assets = d.get('assets')
         self.jar = d.get('jar', self.id)
         self.main_class = d.get('mainClass')
+        self.minecraft_arguments = d.get('minecraftArguments')
+        if self.minecraft_arguments:
+            self.minecraft_arguments = Template(self.minecraft_arguments)
 
         self.libraries = []
         self.extract = []
@@ -35,7 +38,7 @@ class MCVersion(object):
         if not parent or not self.inherits_from:
             return False
         if parent.id == self.id:
-            raise ValueError
+            raise ValueError('Self-inheritance attempt')
         else:
             self.inherits_from = parent.inherits_from
             if not self.minecraft_arguments:
@@ -47,4 +50,5 @@ class MCVersion(object):
             if not self.main_class:
                 self.main_class = parent.main_class
             self.libraries += parent.libraries
+            self.extract += parent.extract
             return True
