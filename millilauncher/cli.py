@@ -6,14 +6,16 @@ import click
 
 import api
 from config import config
-from __init__ import __version__ as version
+
+with open('VERSION') as version_file:
+    __version__ = version_file.read().strip()
 
 logging.basicConfig(filename='millilauncher.log', filemode='w', level=logging.DEBUG)
 
 CONTEXT_SETTINGS = {'help_option_names':['-h', '--help']}
 
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.version_option(version=version)
+@click.version_option(version=__version__)
 def main():
     """
     Millilauncher
@@ -22,7 +24,9 @@ def main():
     You can launch Minecraft in a few commands, everything else is done in the backend.
     Sounds cool, doesn't it? Now it's your turn, hacker!
     """
-    pass
+    if config.first_run:
+        click.echo('This seems the first run. Running setup wizard.')
+        _wizard()
 
 @main.command()
 @click.argument('version')
@@ -94,7 +98,7 @@ def _wizard():
     config.java_dir = click.prompt('Your \'javaw\' file path', show_default=True, default=config.java_dir, type=click.Path(exists=True))
     config.max_mem = click.prompt('Maximum memory allocated to Minecraft in MB', show_default=True, default=config.max_mem, type=int)
     config.username = click.prompt('Your Minecraft username', show_default=True, default=config.username)
-    click.echo('Done! More entries can be reached later manually.')
+    click.echo('Done! More entries can be reached later manually.\n')
     config.save()
 
 @main.command('list')

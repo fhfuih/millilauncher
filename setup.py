@@ -3,9 +3,12 @@
 
 import setuptools
 
+with open('millilauncher/VERSION') as version_file:
+    version = version_file.read().strip()
+
 setuptools.setup(
     name="millilauncher",
-    version="0.1.0",
+    version=version,
     # version=millilauncher.__version__,
     url="https://github.com/fhfuih/millilauncher",
 
