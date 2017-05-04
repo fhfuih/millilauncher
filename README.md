@@ -27,7 +27,7 @@ More to be implemented.
 
 * [ ] Authentication
 
-* [ ] Further investigation on `userProperties` `userTyoe`
+* [ ] Further investigation on `userProperties` `userType`
 
 * [ ] Auto-detect & download missing game dependencies
 
@@ -35,4 +35,4 @@ More to be implemented.
 
 # License
 
-WTFPL
+MIT
