@@ -7,15 +7,14 @@ import click
 import api
 from config import config
 
-with open('VERSION') as version_file:
-    __version__ = version_file.read().strip()
+from version import __version__ as version
 
 logging.basicConfig(filename='millilauncher.log', filemode='w', level=logging.DEBUG)
 
 CONTEXT_SETTINGS = {'help_option_names':['-h', '--help']}
 
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.version_option(version=__version__)
+@click.version_option(version=version)
 def main():
     """
     Millilauncher
