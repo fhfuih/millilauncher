@@ -18,9 +18,7 @@ setuptools.setup(
     description="A minimalist, line-oriented Minecraft launcher",
     long_description=open("README.md").read(),
 
-    packages=[
-        "millilauncher",
-    ],
+    packages=setuptools.find_packages(),
     # ? include_package_data=True,
     entry_points={
         "console_scripts": [

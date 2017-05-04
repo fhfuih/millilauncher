@@ -6,7 +6,7 @@ import os.path
 import logging
 import json
 
-from api import systeminfo as _info
+from .api import systeminfo as _info
 
 _config_file = os.path.join(syspath[0], 'millilauncher.json')
 

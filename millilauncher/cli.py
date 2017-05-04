@@ -4,10 +4,10 @@ A command-line interface
 import logging
 import click
 
-import api
-from config import config
+from . import api
+from .config import config
 
-from version import __version__ as version
+from .version import __version__ as version
 
 logging.basicConfig(filename='millilauncher.log', filemode='w', level=logging.DEBUG)
 
