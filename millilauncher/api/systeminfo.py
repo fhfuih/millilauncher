@@ -2,13 +2,14 @@
 System infomation and useful directories storage.
 """
 import platform as pf
-import os
+import os.path
 import shutil
-from sys import path as syspath
+import sys
 
-launcher_dir = os.path.realpath(syspath[0])
-
-parent_dir = os.path.split(launcher_dir)[0]
+if getattr(sys, 'frozen', False):
+    launcher_dir = os.path.dirname(sys.executable)
+else:
+    launcher_dir = sys.path[0]
 
 system = {'Windows':'windows', 'Darwin':'osx', 'Linux':'linux'}[pf.system()]
 
@@ -29,6 +30,6 @@ else:
 if not os.path.exists(default_minecraft_directory):
     default_minecraft_directory = os.path.join(launcher_dir, '.minecraft')
     if not os.path.exists(default_minecraft_directory):
-        default_minecraft_directory = os.path.join(parent_dir, '.minecraft')
+        default_minecraft_directory = os.path.join(os.path.dirname(launcher_dir), '.minecraft')
         if not os.path.exists(default_minecraft_directory):
             default_minecraft_directory = None

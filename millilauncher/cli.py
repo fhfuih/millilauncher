@@ -6,10 +6,7 @@ import click
 
 from . import api
 from .config import config
-
 from .version import __version__ as version
-
-logging.basicConfig(filename='millilauncher.log', filemode='w', level=logging.DEBUG)
 
 CONTEXT_SETTINGS = {'help_option_names':['-h', '--help']}
 

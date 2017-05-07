@@ -1,14 +1,18 @@
 """
 Configuration settings and storage.
 """
-from sys import path as syspath
+import sys
 import os.path
 import logging
 import json
 
 from .api import systeminfo as _info
 
-_config_file = os.path.join(syspath[0], 'millilauncher.json')
+_config_file = os.path.join(_info.launcher_dir, 'millilauncher.json')
+
+_logging_file = os.path.join(_info.launcher_dir, 'millilauncher.log')
+
+logging.basicConfig(filename=_logging_file, filemode='w', level=logging.DEBUG)
 
 _default = {
     # download_source:'Mojang',
@@ -38,6 +42,8 @@ class _Config(dict):
         else:
             self.__dict__['first_run'] = False
             self._confirm()
+        finally:
+            logging.info('Config file is stored in %s', _config_file)
 
     def __getattr__(self, key):
         return self[key]

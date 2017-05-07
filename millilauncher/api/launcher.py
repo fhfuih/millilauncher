@@ -18,12 +18,12 @@ class LauncherCore(object):
     def __init__(self, mc_dir=default_minecraft_directory, java_dir=default_java_directory):
         self.minecraft_directory = mc_dir
         self.java_directory = java_dir
-        if not self.minecraft_directory:
+        if not mc_dir or not os.path.exists(mc_dir):
             logging.critical('Invalid /.minecraft/ directory.')
-            raise FileNotFoundError('Invalid /.minecraft/ directory.')
-        if not self.java_directory:
+            raise FileNotFoundError('Invalid /.minecraft/ directory {0}'.format(mc_dir))
+        if not java_dir or not os.path.exists(java_dir):
             logging.critical('Invalid javaw.exe directory.')
-            raise FileNotFoundError('Invalid javaw.exe directory.')
+            raise FileNotFoundError('Invalid javaw.exe directory {0}'.format(java_dir))
         self.libraries_directory = os.path.join(self.minecraft_directory, 'libraries')
         self.assets_directory = os.path.join(self.minecraft_directory, 'assets')
         self.version_directory = None
