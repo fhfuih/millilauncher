@@ -12,8 +12,9 @@ which will be replaced by 'native'.
 
 Further investigation is needed.
 """
+import re
 from string import Template
-from .systeminfo import system, architecture
+from .systeminfo import system, architecture, version
 
 class MCLibrary(object):
     def __init__(self, d):
@@ -22,24 +23,25 @@ class MCLibrary(object):
         # self.allow
         self.allow = MCLibrary._parse_rule(d)
 
-        # self.url, self.path
-        native_key = Template(d['natives'][system]).substitute(
-            arch=architecture) if 'natives' in d else None
-        if 'downloads' in d: # Mojang format
-            if native_key:
-                self.url = d['downloads']['classifiers'][native_key]['url']
-                self.path = d['downloads']['classifiers'][native_key]['path']
-            # make sure non-native is always the fallback option
-            else: # 'artifact' in d['downloads']
-                self.url = d['downloads']['artifact']['url']
-                self.path = d['downloads']['artifact']['path']
-        else: # Forge format
-            url = d.get('url', 'https://libraries.minecraft.net/')
-            self.path = MCLibrary._parse_name(self.name, native_key)
-            self.url = url + self.path
+        if self.allow:
+            # self.url, self.path
+            native_key = Template(d['natives'][system]).substitute(
+                arch=architecture) if 'natives' in d else None
+            if 'downloads' in d: # Mojang format
+                if native_key:
+                    self.url = d['downloads']['classifiers'][native_key]['url']
+                    self.path = d['downloads']['classifiers'][native_key]['path']
+                # make sure non-native is always the fallback option
+                else: # 'artifact' in d['downloads']
+                    self.url = d['downloads']['artifact']['url']
+                    self.path = d['downloads']['artifact']['path']
+            else: # Forge format
+                url = d.get('url', 'https://libraries.minecraft.net/')
+                self.path = MCLibrary._parse_name(self.name, native_key)
+                self.url = url + self.path
 
-        # self.exclude
-        self.exclude = d['extract']['exclude'] if 'extract' in d else []
+            # self.exclude
+            self.exclude = d['extract']['exclude'] if 'extract' in d else []
 
     @staticmethod
     def _parse_rule(d):
@@ -48,7 +50,14 @@ class MCLibrary(object):
             for action_dict in d['rules']: # d['rules'] is a list of dicts
                 # if action_dict['action'] == 'allow' and 'os' NOT in: default True, skip.
                 if action_dict['action'] == 'allow' and 'os' in action_dict:
-                    allow = (system == action_dict['os']['name'])
+                    if system == action_dict['os']['name']:
+                        pattern = action_dict['os'].get('version')
+                        if pattern:
+                            allow = re.match(pattern, version)
+                        else:
+                            allow = True
+                    else:
+                        allow = False
                 elif action_dict['action'] == 'disallow':
                     allow = (system != action_dict['os']['name'])
         return allow
