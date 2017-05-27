@@ -33,6 +33,8 @@ More to be implemented.
 
 * [ ] Download game clients and mod installers
 
-# License
+# License & Credit
 
-MIT
+This software is under MIT license.
+
+The icon is originally created by [Brock Love](https://thenounproject.com/brock.love) from [The Noun Project](https://thenounproject.com/term/creeper/431729), named 'Creeper', and distributed under [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0).
