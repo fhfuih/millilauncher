@@ -31,14 +31,18 @@ class MCLibrary(object):
                 if native_key:
                     self.url = d['downloads']['classifiers'][native_key]['url']
                     self.path = d['downloads']['classifiers'][native_key]['path']
+                    self.sha1 = d['downloads']['classifiers'][native_key]['sha1']
                 # make sure non-native is always the fallback option
-                else: # 'artifact' in d['downloads']
+                else:
                     self.url = d['downloads']['artifact']['url']
                     self.path = d['downloads']['artifact']['path']
+                    self.sha1 = d['downloads']['artifact']['sha1']
             else: # Forge format
                 url = d.get('url', 'https://libraries.minecraft.net/')
                 self.path = MCLibrary._parse_name(self.name, native_key)
                 self.url = url + self.path
+                self.sha1 = None
+                # When 'checksum' contains 2 values, neither of them matches its sha1 or md5. Why?
 
             # self.exclude
             self.exclude = d['extract']['exclude'] if 'extract' in d else []

@@ -6,6 +6,7 @@ import logging
 import subprocess
 from string import Template
 from zipfile import ZipFile
+from . import web
 from .mcversionslist import MCVersionsList
 from .systeminfo import default_minecraft_directory, default_java_directory, system
 
@@ -96,7 +97,7 @@ class LauncherCore(object):
         for lib in version.libraries:
             full_path = os.path.join(self.libraries_directory, lib.path)
             if not os.path.exists(full_path):
-                raise FileNotFoundError("Library {0} doesn't exist".format(lib.name))
+                web.download(lib.url, lib.name, full_path)
             self.libraries.append(full_path)
-            logging.debug('Loaded library %s', lib.name)
+            logging.debug('Loaded library {0}, path {1}, url {2}'.format(lib.name,full_path, lib.url))
         logging.info('Loaded all libraries. %d in total', len(self.libraries))

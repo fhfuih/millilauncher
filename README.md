@@ -29,7 +29,7 @@ More to be implemented.
 
 * [ ] Further investigation on `userProperties` `userType`
 
-* [ ] Auto-detect & download missing game dependencies
+* [ ] Auto-detect & download missing game dependencies(~~libraries~~, client, assets)
 
 * [ ] Download game clients and mod installers
 
