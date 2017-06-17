@@ -28,10 +28,10 @@ class MCVersionsList(object):
         """Attempt to get a MCVersion object according to its id.
         Returns None if not in the list."""
         this = self._dict.get(version_id)
-        if not this:
-            return None
+        if this is None:
+            raise ValueError('Invalid version id {0}. Please check if {0}.json exists.'.format(version_id))
         parent_id = this.inherits_from
         if parent_id:
-            parent = self.get(parent_id) # recursively do parent's inheritance first
+            parent = self.get(parent_id) # recursively do parent's inheritance by self.get instead of _dict.get
             this.inherit(parent)
         return this

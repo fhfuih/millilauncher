@@ -42,7 +42,7 @@ class MCLibrary(object):
                 self.path = MCLibrary._parse_name(self.name, native_key)
                 self.url = url + self.path
                 self.sha1 = None
-                # When 'checksum' contains 2 values, neither of them matches its sha1 or md5. Why?
+                # When (and only when) 'checksum' contains 2 values, neither of them matches its sha1 or md5. Why?
 
             # self.exclude
             self.exclude = d['extract']['exclude'] if 'extract' in d else []

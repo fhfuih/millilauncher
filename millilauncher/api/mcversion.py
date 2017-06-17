@@ -33,7 +33,8 @@ class MCVersion(object):
 
     def inherit(self, parent):
         """
-        Check if this version has parent, and inherit its data if so
+        Check if this version has parent, and inherit its data if so.
+        This function is called on invoking MCVersionsList.get()
         """
         if not parent or not self.inherits_from:
             return False

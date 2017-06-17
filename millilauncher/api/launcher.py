@@ -56,9 +56,7 @@ class LauncherCore(object):
         Returns a command script to launch Minecraft
         """
         logging.info('Attemting to launch Minecraft %s', version_id)
-        version = self.versions.get(version_id)
-        if not version:
-            raise AttributeError('Version of this id does not exist.')
+        version = self.versions.get(version_id) #Success indicates existance of <v>.json and <parent>.json
         self._update_directories(version_id)
         self._update_libraries(version)
         self._extract_natives(version)
