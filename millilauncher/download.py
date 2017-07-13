@@ -1,7 +1,9 @@
-import os
 import logging
+import os
+
+import click
 import requests
-from click import progressbar
+
 
 def download(url, name, path):
     print('Downloading: {0}'.format(name))
@@ -16,8 +18,20 @@ def download(url, name, path):
         os.makedirs(dir_name)
     if os.path.exists(temp_name):
         os.remove(temp_name)
-    with progressbar(r.iter_content(1024), length=total_size) as bar, open(temp_name, 'wb') as file:
+    with click.progressbar(r.iter_content(1024), length=total_size) as bar, open(temp_name, 'wb') as file:
         for chunk in bar:
             file.write(chunk)
             bar.update(len(chunk))
     os.rename(temp_name, path)
+
+def login(username, password):
+    pass
+
+def refresh(username):
+    pass
+
+def check(username):
+    pass
+
+def logout(username, password):
+    pass

@@ -1,14 +1,17 @@
 """
 Core Minecraft luancher object.
 """
-import os
 import logging
+import os
 import subprocess
 from string import Template
 from zipfile import ZipFile
-from . import web
-from .mcversionslist import MCVersionsList
-from .systeminfo import default_minecraft_directory, default_java_directory, system
+
+from .clientcore.mcversionslist import MCVersionsList
+from .clientcore.systeminfo import (default_java_directory,
+                                    default_minecraft_directory, system)
+
+from . import download
 
 _template_script = Template('${javaw} ${extra} -Xmx${maxmem}M -Djava.library.path=${natives} -cp ${libs} ${main} ${mcargs}')
 
@@ -32,8 +35,6 @@ class LauncherCore(object):
         self.libraries = None
         os.chdir(self.minecraft_directory)
         self.versions = MCVersionsList(mc_dir)
-
-        self.extra_argument = '-Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true'
 
     def launch(self, version_id, username='Steve', maxmem=1024):
         """
@@ -62,15 +63,16 @@ class LauncherCore(object):
         self._extract_natives(version)
 
         jar = os.path.join(self.minecraft_directory, 'versions', version.jar, version.jar + '.jar')
-        libraries = ';'.join(self.libraries) + ';' + jar
+        libraries = (';' if system == 'windows' else ':').join(self.libraries) + ';' + jar
+        extra_argument = '-Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true' if version.is_forge else None
         mcargs = version.minecraft_arguments.substitute(
             auth_player_name=username, version_name=version_id,
             game_directory=self.minecraft_directory, assets_root=self.assets_directory,
             assets_index_name=version.assets, auth_uuid=0, auth_access_token=0,
-            user_type='Legacy', version_type='Legacy', user_properties={})
+            user_type='Legacy', version_type=version.type, user_properties={})
 
         script = _template_script.substitute(
-            javaw=self.java_directory, extra=self.extra_argument, maxmem=maxmem,
+            javaw=self.java_directory, extra=extra_argument, maxmem=maxmem,
             natives=self.natives_directory, libs=libraries, main=version.main_class, mcargs=mcargs)
         logging.info('Successfully generated launching script.')
         return script
@@ -85,7 +87,7 @@ class LauncherCore(object):
             with ZipFile(library.path) as libzip:
                 namelist = libzip.namelist()
                 for excl_name in library.exclude:
-                    namelist = list(filter(lambda name: not name.startswith(excl_name), namelist))
+                    namelist = [x for x in namelist if not x.startswith(excl_name)]
                 libzip.extractall(self.natives_directory, namelist)
                 logging.debug('Extracted %d files from library %s', len(namelist), library.name)
         os.chdir(self.minecraft_directory)
@@ -95,7 +97,7 @@ class LauncherCore(object):
         for lib in version.libraries:
             full_path = os.path.join(self.libraries_directory, lib.path)
             if not os.path.exists(full_path):
-                web.download(lib.url, lib.name, full_path)
+                download.download(lib.url, lib.name, full_path)
             self.libraries.append(full_path)
             logging.debug('Loaded library {0}, path {1}, url {2}'.format(lib.name,full_path, lib.url))
         logging.info('Loaded all libraries. %d in total', len(self.libraries))

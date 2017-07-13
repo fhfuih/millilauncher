@@ -2,7 +2,7 @@
 System infomation and useful directories storage.
 """
 import platform as pf
-import os.path
+import os
 import shutil
 import sys
 

@@ -1,16 +1,17 @@
 """
 Configuration settings and storage.
 """
-import sys
-import os.path
-import logging
 import json
+import logging
+import os
+import sys
 
-from .api import systeminfo as _info
+from .clientcore.systeminfo import (default_java_directory,
+                                    default_minecraft_directory, launcher_dir)
 
-_config_file = os.path.join(_info.launcher_dir, 'millilauncher.json')
+_config_file = os.path.join(launcher_dir, 'millilauncher.json')
 
-_logging_file = os.path.join(_info.launcher_dir, 'millilauncher.log')
+_logging_file = os.path.join(launcher_dir, 'millilauncher.log')
 
 logging.basicConfig(filename=_logging_file, filemode='w', level=logging.DEBUG)
 
@@ -18,10 +19,10 @@ _default = {
     # download_source:'Mojang',
     "exit_on_launch": False,
     "fullscreen": False,
-    "java_dir": _info.default_java_directory,
+    "java_dir": default_java_directory,
     # login_mode:'Offline',
     "max_mem": 2048,
-    "mc_dir": _info.default_minecraft_directory,
+    "mc_dir": default_minecraft_directory,
     "username": "Steve"
 }
 

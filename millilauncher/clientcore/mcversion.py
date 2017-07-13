@@ -15,9 +15,15 @@ class MCVersion(object):
         self.id = d['id']
         self.assets = d.get('assets')
         self.jar = d.get('jar', self.id)
+        self.type = d.get('type')
         self.main_class = d.get('mainClass')
         self.minecraft_arguments = d.get('minecraftArguments')
-        if self.minecraft_arguments:
+        if self.minecraft_arguments is not None:
+            if self.minecraft_arguments.find('--versionType Forge') != -1:
+                self.type = 'Forge'
+                self.is_forge = True
+            else:
+                self.is_forge = False
             self.minecraft_arguments = Template(self.minecraft_arguments)
 
         self.libraries = []

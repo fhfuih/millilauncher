@@ -2,10 +2,11 @@
 A command-line interface
 """
 import logging
+
 import click
 
-from . import api
 from .config import config
+from .launcher import LauncherCore
 from .version import __version__ as version
 
 CONTEXT_SETTINGS = {'help_option_names':['-h', '--help']}
@@ -31,7 +32,7 @@ def launch(version, raw):
     """
     Launch Minecraft of the given version
     """
-    launcher = api.LauncherCore(config.mc_dir, config.java_dir)
+    launcher = LauncherCore(config.mc_dir, config.java_dir)
     if raw:
         click.echo(launcher.launch_raw(version, config.username, config.max_mem))
     else:
@@ -109,7 +110,7 @@ def list_(src, min, max):
     The latter will get a list of valid versions released by Mojang.
     """
     if src == 'local':
-        launcher = api.LauncherCore(config.mc_dir, config.java_dir)
+        launcher = LauncherCore(config.mc_dir, config.java_dir)
         vlist = launcher.versions.list
         try:
             begin = vlist.index(min)
