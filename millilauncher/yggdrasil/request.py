@@ -1,8 +1,6 @@
 import json
 import requests
 
-from .launcherprofile import launcher_profile
-
 LOGIN_URL = 'https://authserver.mojang.com/authenticate'
 REFRESH_URL = 'https://authserver.mojang.com/refresh'
 CHECK_URL = 'https://authserver.mojang.com/validate'
@@ -33,18 +31,16 @@ def login(username, password, client_token=None):
     return Response(obj)
 
 def refresh(access_token, client_token):
-    payload = dict(accessToken=access_token, clientToken=client_token, selectedProfile=None)
+    payload = dict(accessToken=access_token, clientToken=client_token)
     r = requests.post(REFRESH_URL, json=payload, headers=HEADERS)
     obj = r.json()
     _check_status(r.status_code, obj)
     return Response(obj)
 
 def check(access_token, client_token):
-    payload = dict(accessToken=access_token, clientToken=client_token)
+    payload = dict(accessToken=access_token, clientToken=client_token, requestUser=True)
     r = requests.post(CHECK_URL, json=payload, headers=HEADERS)
-    obj = r.json()
-    _check_status(r.status_code, obj)
-    return Response(obj)
+    return bool(r)
 
 def logout(access_token, client_token):
     payload = dict(accessToken=access_token, clientToken=client_token)

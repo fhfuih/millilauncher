@@ -7,6 +7,7 @@ import subprocess
 from string import Template
 from zipfile import ZipFile
 
+from . import yggdrasil
 from .clientcore.mcversionslist import MCVersionsList
 from .clientcore.systeminfo import (default_java_directory,
                                     default_minecraft_directory, system)
@@ -35,24 +36,25 @@ class LauncherCore(object):
         self.libraries = None
         os.chdir(self.minecraft_directory)
         self.versions = MCVersionsList(mc_dir)
+        yggdrasil.init()
 
-    def launch(self, version_id, username='Steve', maxmem=1024):
+    def launch(self, version_id, auth_tuple=('Steve',None), maxmem=1024):
         """
         Launch Minecraft
         """
         # subprocess.run(self.launch_raw(version_id, username, maxmem))
         if system == 'windows':
             p = subprocess.Popen(
-                self.launch_raw(version_id, username, maxmem),
+                self.launch_raw(version_id, auth_tuple, maxmem),
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         else:
             from shlex import split
             p = subprocess.Popen(
-                split(self.launch_raw(version_id, username, maxmem)),
+                split(self.launch_raw(version_id, auth_tuple, maxmem)),
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-    # goal: launch(self, version_id, auth[tuple], server, size[tuple])
-    def launch_raw(self, version_id, username='Steve', maxmem=1024):
+    # goal: launch(self, version_id, auth[tuple], maxmem, windows_ize[tuple])
+    def launch_raw(self, version_id, auth_tuple, maxmem):
         """
         Returns a command script to launch Minecraft
         """
@@ -65,11 +67,16 @@ class LauncherCore(object):
         jar = os.path.join(self.minecraft_directory, 'versions', version.jar, version.jar + '.jar')
         libraries = (';' if system == 'windows' else ':').join(self.libraries) + ';' + jar
         extra_argument = '-Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true' if version.is_forge else None
-        mcargs = version.minecraft_arguments.substitute(
-            auth_player_name=username, version_name=version_id,
-            game_directory=self.minecraft_directory, assets_root=self.assets_directory,
-            assets_index_name=version.assets, auth_uuid=0, auth_access_token=0,
-            user_type='Legacy', version_type=version.type, user_properties={})
+        
+        mcargs_substitute = dict(
+            version_name=version_id,
+            game_directory=self.minecraft_directory,
+            assets_root=self.assets_directory,
+            assets_index_name=version.assets,
+            version_type=version.type
+        )
+        mcargs_substitute.update(self._authorize(auth_tuple))
+        mcargs = version.minecraft_arguments.substitute(mcargs_substitute)
 
         script = _template_script.substitute(
             javaw=self.java_directory, extra=extra_argument, maxmem=maxmem,
@@ -101,3 +108,10 @@ class LauncherCore(object):
             self.libraries.append(full_path)
             logging.debug('Loaded library {0}, path {1}, url {2}'.format(lib.name,full_path, lib.url))
         logging.info('Loaded all libraries. %d in total', len(self.libraries))
+
+    @staticmethod
+    def _authorize(auth_tuple):
+        if auth_tuple[1] is None:
+            return yggdrasil.offline(auth_tuple[0])
+        else:
+            return yggdrasil.login(*auth_tuple)

@@ -28,15 +28,30 @@ def main():
 @main.command()
 @click.argument('version')
 @click.option('-r', '--raw', is_flag=True, default=False)
-def launch(version, raw):
+@click.option('-a', '--auth', default=None)
+@click.option('-o', '--offline')
+def launch(version, **kwargs):
     """
     Launch Minecraft of the given version
     """
-    launcher = LauncherCore(config.mc_dir, config.java_dir)
-    if raw:
-        click.echo(launcher.launch_raw(version, config.username, config.max_mem))
+    if kwargs['auth'] is not None:
+        if 'offline' in kwargs:
+            raise ValueError("'auth' and 'offline' cannot be enabled togather.")
+        password = click.prompt('Please enter your password:', hide_input=True)
+        auth_tuple = (kwargs['auth'], password)
     else:
-        launcher.launch(version, config.username, config.max_mem)
+        if kwargs['offline'] is not None:
+            auth_tuple = (kwargs['offline'], None)
+        else:
+            raise ValueError("Please provide your auth credential or launch offline.")
+
+
+
+    launcher = LauncherCore(config.mc_dir, config.java_dir)
+    if kwargs['raw']:
+        click.echo(launcher.launch_raw(version, auth_tuple, config.max_mem))
+    else:
+        launcher.launch(version, auth_tuple, config.max_mem)
 
 # @main.command('download')
 # @click.argument('version')
@@ -69,7 +84,7 @@ def launch(version, raw):
 def config_(action, **kw):
     """
     Configure your launcher and game preferences.
-    The 'action' argument is optional, and can be 'reset' or 'wizard'. 
+    The 'action' argument is optional, and can be 'reset' or 'wizard'.
     If it's left blank, only given options will be set.
     Else, given options will be set AFTER the corresponding action is executed.
     """
