@@ -2,7 +2,8 @@
 An object to handle a single Minecraft version file.
 """
 from string import Template
-from .mclibrary import MCLibrary
+import clientcore.mclibrary
+
 
 class MCVersion(object):
     """
@@ -29,7 +30,7 @@ class MCVersion(object):
         self.libraries = []
         self.extract = []
         for obj in d.get('libraries', []):
-            lib = MCLibrary(obj)
+            lib = clientcore.mclibrary.MCLibrary(obj)
             if lib.allow:
                 self.libraries.append(lib)
                 if lib.exclude:

@@ -7,20 +7,19 @@ import subprocess
 from string import Template
 from zipfile import ZipFile
 
-from . import yggdrasil
-from .clientcore.mcversionslist import MCVersionsList
-from .clientcore.systeminfo import (default_java_directory,
-                                    default_minecraft_directory, system)
-
-from . import download
+import dirs
+import yggdrasil
+import clientcore.mcversionslist
+import download
 
 _template_script = Template('${javaw} ${extra} -Xmx${maxmem}M -Djava.library.path=${natives} -cp ${libs} ${main} ${mcargs}')
+
 
 class LauncherCore(object):
     """
     Core Minecraft luancher object.
     """
-    def __init__(self, mc_dir=default_minecraft_directory, java_dir=default_java_directory):
+    def __init__(self, mc_dir=dirs.minecraft_dir, java_dir=dirs.java_dir):
         self.minecraft_directory = mc_dir
         self.java_directory = java_dir
         if not mc_dir or not os.path.exists(mc_dir):
@@ -35,15 +34,14 @@ class LauncherCore(object):
         self.natives_directory = None
         self.libraries = None
         os.chdir(self.minecraft_directory)
-        self.versions = MCVersionsList(mc_dir)
-        yggdrasil.init()
+        self.versions = clientcore.mcversionslist.MCVersionsList(mc_dir)
 
-    def launch(self, version_id, auth_tuple=('Steve',None), maxmem=1024):
+    def launch(self, version_id, auth_tuple=('Steve', None), maxmem=1024):
         """
         Launch Minecraft
         """
         # subprocess.run(self.launch_raw(version_id, username, maxmem))
-        if system == 'windows':
+        if dirs.system == 'windows':
             p = subprocess.Popen(
                 self.launch_raw(version_id, auth_tuple, maxmem),
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -59,15 +57,15 @@ class LauncherCore(object):
         Returns a command script to launch Minecraft
         """
         logging.info('Attemting to launch Minecraft %s', version_id)
-        version = self.versions.get(version_id) #Success indicates existance of <v>.json and <parent>.json
+        version = self.versions.get(version_id)  # Success indicates existance of <v>.json and <parent>.json
         self._update_directories(version_id)
         self._update_libraries(version)
         self._extract_natives(version)
 
         jar = os.path.join(self.minecraft_directory, 'versions', version.jar, version.jar + '.jar')
-        libraries = (';' if system == 'windows' else ':').join(self.libraries) + ';' + jar
+        libraries = (';' if dirs.system == 'windows' else ':').join(self.libraries) + ';' + jar
         extra_argument = '-Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true' if version.is_forge else None
-        
+
         mcargs_substitute = dict(
             version_name=version_id,
             game_directory=self.minecraft_directory,

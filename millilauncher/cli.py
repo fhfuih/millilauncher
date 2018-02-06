@@ -1,15 +1,14 @@
 """
 A command-line interface
 """
-import logging
-
 import click
 
-from .config import config
-from .launcher import LauncherCore
-from .version import __version__ as version
+import config
+import launchercore
+from version import __version__ as version
 
-CONTEXT_SETTINGS = {'help_option_names':['-h', '--help']}
+CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help']}
+
 
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option(version=version)
@@ -21,21 +20,22 @@ def main():
     You can launch Minecraft in a few commands, everything else is done in the backend.
     Sounds cool, doesn't it? Now it's your turn, hacker!
     """
-    if config.first_run:
+    if config.config.getboolean("FirstRun"):
         click.echo('This seems the first run. Running setup wizard.')
         _wizard()
 
-@main.command()
+
+@main.command('launch')
 @click.argument('version')
 @click.option('-r', '--raw', is_flag=True, default=False)
 @click.option('-a', '--auth', default=None)
-@click.option('-o', '--offline')
+@click.option('-o', '--offline', default=None)
 def launch(version, **kwargs):
     """
     Launch Minecraft of the given version
     """
     if kwargs['auth'] is not None:
-        if 'offline' in kwargs:
+        if kwargs['offline'] is not None:
             raise ValueError("'auth' and 'offline' cannot be enabled togather.")
         password = click.prompt('Please enter your password:', hide_input=True)
         auth_tuple = (kwargs['auth'], password)
@@ -45,13 +45,16 @@ def launch(version, **kwargs):
         else:
             raise ValueError("Please provide your auth credential or launch offline.")
 
-
-
-    launcher = LauncherCore(config.mc_dir, config.java_dir)
+    launcher = launchercore.LauncherCore(
+        config.config.get("MinecraftDir"),
+        config.config.get("JavaDir"))
     if kwargs['raw']:
-        click.echo(launcher.launch_raw(version, auth_tuple, config.max_mem))
+        click.echo(
+            launcher.launch_raw(
+                version, auth_tuple, config.config.getint("MaxMemory")))
     else:
-        launcher.launch(version, auth_tuple, config.max_mem)
+        launcher.launch(
+            version, auth_tuple, config.config.getint("MaxMemory"))
 
 # @main.command('download')
 # @click.argument('version')
@@ -67,6 +70,7 @@ def launch(version, **kwargs):
 #     Download Minecraft, components or mods
 #     """
 #     pass
+
 
 @main.command('config')
 @click.argument('action', type=click.Choice(['reset', 'wizard']), required=False)
@@ -96,22 +100,42 @@ def config_(action, **kw):
         _wizard()
 
     for k, v in kw.items():
+        if k not in config.config:
+            continue
         if v is None:
             break
         if isinstance(v, str) and v[0] == '=':
             v = v[1:]
-        config[k.replace('-', '_')] = v
+        config.config[k] = v
     config.save()
+
 
 def _wizard():
     click.echo('Running the setup wizard. On each line, a default value is shown in the brackets if valid.\
         Leave blank to use it, or enter a new value.')
-    config.mc_dir = click.prompt('Your \'.minecraft\' folder path', show_default=True, default=config.mc_dir, type=click.Path(exists=True))
-    config.java_dir = click.prompt('Your \'javaw\' file path', show_default=True, default=config.java_dir, type=click.Path(exists=True))
-    config.max_mem = click.prompt('Maximum memory allocated to Minecraft in MB', show_default=True, default=config.max_mem, type=int)
-    config.username = click.prompt('Your Minecraft username', show_default=True, default=config.username)
+    config.config["MinecraftDir"] = click.prompt(
+        'Your \'.minecraft\' folder path',
+        show_default=True,
+        default=config.config["MinecraftDir"],
+        type=click.Path(exists=True))
+    config.config["JavaDir"] = click.prompt(
+        'Your \'javaw\' file path',
+        show_default=True,
+        default=config.config["JavaDir"],
+        type=click.Path(exists=True))
+    config.config["MaxMemory"] = click.prompt(
+        'Maximum memory allocated to Minecraft in MB',
+        show_default=True,
+        default=config.config["MaxMemory"],
+        type=int)
+    config.config["Username"] = click.prompt(
+        'Your Minecraft username',
+        show_default=True,
+        default=config.config["Username"])
+    config.config['FirstRun'] = 'no'
     click.echo('Done! More entries can be reached later manually.\n')
     config.save()
+
 
 @main.command('list')
 @click.argument('src', type=click.Choice(['local', 'remote']), default='local')
@@ -125,7 +149,9 @@ def list_(src, min, max):
     The latter will get a list of valid versions released by Mojang.
     """
     if src == 'local':
-        launcher = LauncherCore(config.mc_dir, config.java_dir)
+        launcher = launchercore.LauncherCore(
+            config.config.get("MinecraftDir"),
+            config.config.get("JavaDir"))
         vlist = launcher.versions.list
         try:
             begin = vlist.index(min)
@@ -138,6 +164,7 @@ def list_(src, min, max):
         click.echo('\n'.join(vlist[begin:end]))
     else:
         pass
+
 
 if __name__ == '__main__':
     main()

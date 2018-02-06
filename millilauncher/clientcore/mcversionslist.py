@@ -3,7 +3,9 @@ An object to handle a list of valid Minecraft version files.
 """
 import os
 import json
-from .mcversion import MCVersion
+import clientcore.mcversion
+# from .mcversion import MCVersion
+
 
 class MCVersionsList(object):
     """
@@ -19,7 +21,7 @@ class MCVersionsList(object):
                 json_file = os.path.join(version, version + '.json')
                 if os.path.exists(json_file):
                     with open(json_file) as fp:
-                        self._dict[version] = MCVersion(json.load(fp))
+                        self._dict[version] = clientcore.mcversion.MCVersion(json.load(fp))
         os.chdir('..')
 
         self.list = sorted(self._dict)

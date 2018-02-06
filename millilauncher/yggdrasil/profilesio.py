@@ -2,23 +2,26 @@ import os
 import json
 import shutil
 
-from . import authdata
+import yggdrasil.authdata
+import dirs
 
-FILE_PATH = 'launcher_profiles.json'
-BACKUP_PATH = 'launcher_profiles.json.millibackup'
 
 class ProfilesIO:
     def __init__(self):
-        with open(FILE_PATH) as fp:
+        with open(dirs.launcherprofiles) as fp:
             self.data = json.load(fp)
-            self.authdb = authdata.AuthenticationDatabase(self.data)
+            self.authdb = yggdrasil.authdata.AuthenticationDatabase(self.data)
 
     def save(self):
-        if not os.path.exists(BACKUP_PATH):
-            shutil.copyfile(FILE_PATH, BACKUP_PATH)
+        if not os.path.exists(dirs.launcherprofiles_backup):
+            shutil.copyfile(
+                dirs.launcherprofiles, dirs.launcherprofiles_backup)
         self.data['clientToken'] = self.authdb.client_token
         self.data['authenticationDatabase'] = self.authdb.export_database()
-        self.data['selectedUser']['account'] = self.selected_id
-        self.data['selectedUser']['profile'] = self.selected().profile.id
-        with open(FILE_PATH, 'w') as fp:
+        self.data['selectedUser']['account'] = self.authdb.selected_id
+        self.data['selectedUser']['profile'] = self.authdb.selected().profile.id
+        with open(dirs.launcherprofiles, 'w') as fp:
             json.dump(self.data, fp)
+
+
+profilesio = ProfilesIO()
